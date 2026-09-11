@@ -4,7 +4,9 @@ A Talos-like control plane for [Microraptor](https://github.com/HuntedRaven7/Mic
 a node-side gRPC API daemon (`apxd`) and a CLI (`apxctl`) for k0s single-node
 factory images built on `systemd-sysupdate` A/B slots.
 
-See [PLAN.md](PLAN.md) for the architecture and the implementation roadmap.
+See [PLAN.md](PLAN.md) for the architecture and the implementation roadmap and
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a prose deep-dive of the
+protocol, certificate model, and update flow.
 
 ## Repository layout
 
@@ -71,9 +73,6 @@ apxctl --bundle ./apx/apxctl.yaml kubeconfig --merge   # merge as context apx-<h
 apxctl --bundle ./apx/apxctl.yaml kubeconfig --file ./kubeconfig
 ```
 
-rollback`, and lifecycle commands land in the upcoming milestones tracked in
-[PLAN.md](PLAN.md).
-
 ## Update / rollback
 
 ```sh
@@ -123,6 +122,46 @@ assembles `dist/rootfs/` in the target layout; `hack/smoke.sh` runs the full
 onboarding flow against a local daemon (including config-rotation rejection of
 the old bootstrap identity), and `hack/qemu-smoke.sh` drives the same checks
 against a real QEMU guest when a Microraptor image is available.
+
+## Development
+
+```sh
+just check          # fmt, vet, lint (golangci-lint), test, build
+just test ./internal/machine   # run one package's tests
+just smoke          # full onboarding E2E against a local daemon
+```
+
+Work is tracked milestone-by-milestone in [PLAN.md](PLAN.md); each milestone
+lands with unit tests, the milestone bullet flipped to ✅, README command
+sections, and a green `just check`. A dedicated agent skill for coding on this
+repo ships in `.opencode/skills/archaeopteryx/SKILL.md`.
+
+## Releases
+
+Releases are **manual only** — nothing auto-triggers:
+
+```sh
+# 1. Make sure the tree is green and committed.
+just check
+
+# 2. Push the commit(s) you want to release.
+
+# 3. In GitHub → Actions → "Release", click Run workflow, type the tag
+#    (e.g. v0.1.0), set prerelease/notes as needed, and run it.
+```
+
+The `Release` workflow (`.github/workflows/release.yml`) then:
+
+1. runs the full `just check` gate;
+2. cross-compiles static `linux/amd64` + `linux/arm64` binaries with the
+   release version baked in (via `APX_BUILD_VERSION`, see `Justfile`);
+3. stages per-arch tarballs (`archaeopteryx-<ver>-linux-<arch>.tar.gz` with
+   the binaries + systemd unit + preset) and a `SHA256SUMS`;
+4. creates the tag and the GitHub Release and attaches the artifacts.
+
+It only runs when you trigger it from the Actions tab (with the tag input) —
+there is no push/tag-based automation, so a release never happens without an
+explicit confirmation.
 
 ## License
 

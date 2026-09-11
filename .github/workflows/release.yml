@@ -1,0 +1,93 @@
+name: Release
+
+# Manual only: this workflow never runs automatically. Trigger it from the
+# Actions tab, supply the tag, and confirm.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag/version, e.g. v0.1.0"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark the release as a prerelease"
+        required: false
+        default: false
+        type: boolean
+      notes:
+        description: "Release notes (Markdown). Empty = repo description"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Gate, build, tag, release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install just
+        run: |
+          curl -fsSL -o /tmp/just.tar.gz \
+            https://github.com/casey/just/releases/download/1.58.0/just-1.58.0-x86_64-unknown-linux-musl.tar.gz
+          tar -xzf /tmp/just.tar.gz -C /tmp just
+          sudo mv /tmp/just /usr/local/bin/just
+          just --version
+
+      - name: Gate (fmt, vet, lint, test, build)
+        run: just check
+
+      - name: Sanity-check that the tag does not already exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ inputs.version }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::tag '$tag' already exists; pick a new version"
+            exit 1
+          fi
+
+      - name: Cross-compile static binaries with the release version
+        env:
+          APX_BUILD_VERSION: ${{ inputs.version }}
+        run: just cross
+
+      - name: Stage per-arch release tarballs
+        run: |
+          set -euo pipefail
+          ver="${{ inputs.version }}"
+          mkdir -p dist/release
+          for arch in amd64 arm64; do
+            stage="dist/release/stage-${arch}"
+            mkdir -p "${stage}/usr/bin" \
+                     "${stage}/usr/lib/systemd/system" \
+                     "${stage}/usr/lib/systemd/system-preset"
+            cp "dist/apxd-linux-${arch}" "${stage}/usr/bin/apxd"
+            cp "dist/apxctl-linux-${arch}" "${stage}/usr/bin/apxctl"
+            cp packaging/microraptor/apxd.service "${stage}/usr/lib/systemd/system/"
+            cp packaging/microraptor/zz-enable-apxd.preset "${stage}/usr/lib/systemd/system-preset/"
+            (cd "${stage}" && tar czf "../archaeopteryx-${ver}-linux-${arch}.tar.gz" usr)
+            rm -rf "${stage}"
+          done
+          (cd dist/release && sha256sum archaeopteryx-*.tar.gz > SHA256SUMS)
+
+      - name: Create the tag, release, and attach artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.version }}
+          body: ${{ inputs.notes }}
+          prerelease: ${{ inputs.prerelease }}
+          files: |
+            dist/release/archaeopteryx-*.tar.gz
+            dist/release/SHA256SUMS

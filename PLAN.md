@@ -286,7 +286,21 @@ k0s:
      console capture, apx port forwarded) and runs the same read-only + update
      checks; gated on `MICRORAPTOR_IMAGE` (built in the Microraptor repo).
    - `just cross` verified: static `linux/amd64` and `linux/arm64` binaries.
-8. **Docs + gates** — README, `just check` (fmt, vet, test, golangci-lint).
+8. **Docs + gates** — ✅ README, `just check` (fmt, vet, golangci-lint, test, build).
+   - Added `docs/ARCHITECTURE.md` (protocol, cert model, update flow, packaging,
+     conventions) linked from the README; README gained a Development section and
+     lost the stale "upcoming milestones" passage.
+   - `just lint` runs golangci-lint (`.golangci.yml`: vet/staticcheck/errcheck/
+     ineffassign/unused/gofmt) with a notice instead of failing when the binary
+     is absent; wired into `just check`.
+   - Agent skill `.opencode/skills/archaeopteryx/SKILL.md` documents current
+     state, the seam/fixture testing strategy, sandbox limits, and the
+     end-to-end feature + docs workflow for Pi/Opencode-style agents.
+   - **Releases**: `.github/workflows/release.yml` (manual `workflow_dispatch`
+     only, no automatic triggers) gates with `just check`, cross-builds
+     `linux/amd64`+`arm64` with the tag baked in via `APX_BUILD_VERSION`
+     (`Justfile` override), stages per-arch tarballs + `SHA256SUMS`, then
+     creates the tag and GitHub Release and attaches the artifacts.
 
 ## Verification
 

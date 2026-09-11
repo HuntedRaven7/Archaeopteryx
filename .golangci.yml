@@ -1,0 +1,22 @@
+# golangci-lint configuration for Archaeopteryx.
+# Runs via `just lint` (part of `just check`).
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - ineffassign
+    - unused
+    - gofmt
+
+linters-settings:
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment # reports struct padding churn; noise for this codebase
+
+issues:
+  exclude-use-default: true
