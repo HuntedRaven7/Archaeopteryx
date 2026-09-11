@@ -6,8 +6,10 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -156,6 +158,37 @@ func (m *machineServer) ServiceAction(ctx context.Context, req *apxv1.ServiceAct
 		return nil, status.Errorf(codes.Internal, "service action: %v", err)
 	}
 	return &apxv1.ServiceActionResponse{Message: msg}, nil
+}
+
+// Bootstrap runs the k0s first-boot flow and returns when the node is Ready.
+func (m *machineServer) Bootstrap(ctx context.Context, req *apxv1.BootstrapRequest) (*apxv1.BootstrapResponse, error) {
+	timeout := 5 * time.Minute
+	if dl, ok := ctx.Deadline(); ok {
+		if d := time.Until(dl); d < timeout {
+			timeout = d
+		}
+	}
+	var steps []string
+	err := machine.Bootstrap(ctx, timeout, func(s string) {
+		steps = append(steps, s)
+		slog.Info("bootstrap", "step", s)
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "bootstrap: %v", err)
+	}
+	return &apxv1.BootstrapResponse{Message: "k0s is running; node is Ready"}, nil
+}
+
+// Kubeconfig returns the admin kubeconfig for the k0s cluster.
+func (m *machineServer) Kubeconfig(ctx context.Context, req *apxv1.KubeconfigRequest) (*apxv1.KubeconfigResponse, error) {
+	out, err := machine.KubeconfigAdmin()
+	if err != nil {
+		if errors.Is(err, exec.ErrNotFound) {
+			return nil, status.Errorf(codes.Unavailable, "k0s not available: %v", err)
+		}
+		return nil, status.Errorf(codes.Internal, "kubeconfig: %v", err)
+	}
+	return &apxv1.KubeconfigResponse{Kubeconfig: out}, nil
 }
 
 // GetConfig returns the applied machine configuration with secrets masked, or

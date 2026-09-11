@@ -62,8 +62,17 @@ apxctl --bundle ./apx/apxctl.yaml logs -f -u k0scontroller.service
 apxctl --bundle ./apx/apxctl.yaml logs --since "1 hour ago"
 ```
 
-`bootstrap`, `update`/`rollback`, and lifecycle commands land in the upcoming
-milestones tracked in [PLAN.md](PLAN.md).
+## k0s
+
+```sh
+apxctl --bundle ./apx/apxctl.yaml bootstrap            # sysext merge + controller + wait Ready
+apxctl --bundle ./apx/apxctl.yaml kubeconfig           # admin kubeconfig on stdout
+apxctl --bundle ./apx/apxctl.yaml kubeconfig --merge   # merge as context apx-<host>
+apxctl --bundle ./apx/apxctl.yaml kubeconfig --file ./kubeconfig
+```
+
+`update`/`rollback`, and lifecycle commands land in the upcoming milestones
+tracked in [PLAN.md](PLAN.md).
 
 ## License
 

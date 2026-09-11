@@ -234,7 +234,16 @@ k0s:
      `ActiveEnterTimestampMonotonic` via one batched `systemctl show`.
    - `apxctl service <start|stop|restart|reload> <unit>`: unit names validated
      before ever reaching systemctl.
-4. **k0s** — `bootstrap`, `kubeconfig`, status wiring.
+4. **k0s** — ✅ `bootstrap`, `kubeconfig`, status wiring.
+   - `apxctl bootstrap`: locates the k0s sysext image (`/var/lib/extensions/k0s.raw`
+     or `/var/lib/k0s/k0s.raw`), runs `systemd-sysext merge` when not merged,
+     `systemctl enable --now k0scontroller.service`, then polls the local
+     kube-apiserver (via the k0s `admin.conf`) until the node reports Ready.
+   - `apxctl kubeconfig [--merge] [--file]`: streams `k0s kubeconfig admin`;
+     `--merge` rewrites the doc under an `apx-<endpoint-host>` identity and merges
+     it into `~/.kube/config` (or `KUBECONFIG`), idempotently replacing prior
+     `apx-<host>` entries and switching `current-context`.
+   - Status wiring: `GetStatus` already surfaces sysext merge + controller state.
 5. **Update/rollback engine** — auto-determine logic; unit tests on the plan builder
    (mock `features` output) and version comparison.
 6. **Lifecycle** — `reboot`, `shutdown`, `reset`, `events`, context/config polish.
