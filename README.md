@@ -52,8 +52,18 @@ Applying the config bakes the hostname, swaps the CA and server identity, and
 drops the bootstrap CA key + onboarding token, so the bootstrap admin identity
 stops working; use the generated bundle afterwards.
 
-`bootstrap`, `update`/`rollback`, logs/services, and lifecycle commands land in
-the upcoming milestones tracked in [PLAN.md](PLAN.md).
+## Systemd / journal
+
+```sh
+apxctl --bundle ./apx/apxctl.yaml services              # unit states
+apxctl --bundle ./apx/apxctl.yaml service restart k0scontroller.service
+apxctl --bundle ./apx/apxctl.yaml logs --tail 200       # last 200 lines
+apxctl --bundle ./apx/apxctl.yaml logs -f -u k0scontroller.service
+apxctl --bundle ./apx/apxctl.yaml logs --since "1 hour ago"
+```
+
+`bootstrap`, `update`/`rollback`, and lifecycle commands land in the upcoming
+milestones tracked in [PLAN.md](PLAN.md).
 
 ## License
 

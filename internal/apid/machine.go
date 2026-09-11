@@ -4,9 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -89,6 +92,70 @@ func (m *machineServer) GetStatus(ctx context.Context, req *apxv1.GetStatusReque
 			Ready:        kube.Ready,
 		},
 	}, nil
+}
+
+// Logs streams journald entries as raw formatted lines.
+func (m *machineServer) Logs(req *apxv1.LogsRequest, stream grpc.ServerStreamingServer[apxv1.LogsResponse]) error {
+	opts := machine.JournalOptions{
+		Unit:      req.Unit,
+		Follow:    req.Follow,
+		TailLines: int(req.TailLines),
+		Since:     req.Since,
+	}
+	return machine.StreamJournal(stream.Context(), opts, func(e machine.JournalEntry) error {
+		return stream.Send(&apxv1.LogsResponse{Data: []byte(machine.FormatJournalLine(e) + "\n")})
+	})
+}
+
+// ListServices returns systemd service unit states.
+func (m *machineServer) ListServices(ctx context.Context, req *apxv1.ListServicesRequest) (*apxv1.ListServicesResponse, error) {
+	svcs, err := machine.ListServices()
+	if err != nil {
+		if errors.Is(err, exec.ErrNotFound) {
+			return nil, status.Errorf(codes.Unavailable, "systemctl not available: %v", err)
+		}
+		return nil, status.Errorf(codes.Internal, "list services: %v", err)
+	}
+	resp := &apxv1.ListServicesResponse{}
+	for _, s := range svcs {
+		resp.Services = append(resp.Services, &apxv1.ServiceInfo{
+			Name:            s.Name,
+			State:           s.State,
+			SubState:        s.SubState,
+			Description:     s.Description,
+			ActiveState:     s.ActiveState,
+			ActiveEnterUsec: s.ActiveEnterUsec,
+		})
+	}
+	return resp, nil
+}
+
+// ServiceAction applies a lifecycle verb to a systemd unit.
+func (m *machineServer) ServiceAction(ctx context.Context, req *apxv1.ServiceActionRequest) (*apxv1.ServiceActionResponse, error) {
+	var kind machine.ServiceActionKind
+	switch req.Action {
+	case apxv1.ServiceActionRequest_START:
+		kind = machine.ActionStart
+	case apxv1.ServiceActionRequest_STOP:
+		kind = machine.ActionStop
+	case apxv1.ServiceActionRequest_RESTART:
+		kind = machine.ActionRestart
+	case apxv1.ServiceActionRequest_RELOAD:
+		kind = machine.ActionReload
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "unsupported action %v", req.Action)
+	}
+	if !machine.ValidUnit(req.Unit) {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid unit name %q", req.Unit)
+	}
+	msg, err := machine.ServiceAction(req.Unit, kind)
+	if err != nil {
+		if errors.Is(err, exec.ErrNotFound) {
+			return nil, status.Errorf(codes.Unavailable, "systemctl not available: %v", err)
+		}
+		return nil, status.Errorf(codes.Internal, "service action: %v", err)
+	}
+	return &apxv1.ServiceActionResponse{Message: msg}, nil
 }
 
 // GetConfig returns the applied machine configuration with secrets masked, or

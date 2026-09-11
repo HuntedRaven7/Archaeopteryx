@@ -3,6 +3,7 @@
 package machine
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -22,7 +23,14 @@ func runOutput(cmd string, args ...string) (string, error) {
 		return "", err
 	}
 	out, err := execCommand(cmd, args...).CombinedOutput()
-	return strings.TrimSpace(string(out)), err
+	s := strings.TrimSpace(string(out))
+	if err != nil {
+		if s != "" {
+			err = fmt.Errorf("%w: %s", err, s)
+		}
+		return "", err
+	}
+	return s, nil
 }
 
 // Host is the runtime status of the host OS.

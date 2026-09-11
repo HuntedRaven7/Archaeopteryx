@@ -226,7 +226,14 @@ k0s:
      `/var/lib/archaeopteryx/config.yaml`).
    - Post-apply, old bootstrap clients are rejected; operator connects via
      `apxctl --bundle apxctl.yaml`. `config get` returns the config redacted (secrets masked).
-3. **systemd / journal** — `logs`, `services`, `service` action.
+3. **systemd / journal** — ✅ `logs`, `services`, `service` action.
+   - `apxctl logs [-f] [-u unit] [--tail=N] [--since=...]`: daemon streams
+     `journalctl -o json` (killed when the client disconnects), rendering lines as
+     `<ts> <host> <ident>[<pid>]: <message>`.
+   - `apxctl services`: `systemctl list-units --type=service -o json`, enriched with
+     `ActiveEnterTimestampMonotonic` via one batched `systemctl show`.
+   - `apxctl service <start|stop|restart|reload> <unit>`: unit names validated
+     before ever reaching systemctl.
 4. **k0s** — `bootstrap`, `kubeconfig`, status wiring.
 5. **Update/rollback engine** — auto-determine logic; unit tests on the plan builder
    (mock `features` output) and version comparison.

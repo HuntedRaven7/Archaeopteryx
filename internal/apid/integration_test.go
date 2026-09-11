@@ -24,6 +24,12 @@ func freePort(t *testing.T) string {
 	return addr
 }
 
+// newTestClient dials srv with the node's bootstrap admin identity.
+func newTestClient(t *testing.T, endpoint, ca, cert, key string) (*client.Client, error) {
+	t.Helper()
+	return client.New(client.Options{Endpoint: endpoint, CA: ca, Cert: cert, Key: key})
+}
+
 func TestVersionRoundTrip(t *testing.T) {
 	srv, endpoint, closeSrv := startTestServer(t)
 	defer closeSrv()
