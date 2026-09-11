@@ -30,6 +30,7 @@ const (
 	MachineService_Shutdown_FullMethodName             = "/apx.v1.MachineService/Shutdown"
 	MachineService_Reset_FullMethodName                = "/apx.v1.MachineService/Reset"
 	MachineService_ApplyConfig_FullMethodName          = "/apx.v1.MachineService/ApplyConfig"
+	MachineService_GetConfig_FullMethodName            = "/apx.v1.MachineService/GetConfig"
 	MachineService_GenerateClientConfig_FullMethodName = "/apx.v1.MachineService/GenerateClientConfig"
 	MachineService_Update_FullMethodName               = "/apx.v1.MachineService/Update"
 	MachineService_Rollback_FullMethodName             = "/apx.v1.MachineService/Rollback"
@@ -67,6 +68,8 @@ type MachineServiceClient interface {
 	Reset(ctx context.Context, in *ResetRequest, opts ...grpc.CallOption) (*ResetResponse, error)
 	// ApplyConfig writes the apxconfig machine configuration.
 	ApplyConfig(ctx context.Context, in *ApplyConfigRequest, opts ...grpc.CallOption) (*ApplyConfigResponse, error)
+	// GetConfig returns the applied machine configuration (key material masked).
+	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 	// GenerateClientConfig issues a client identity signed by the node CA.
 	GenerateClientConfig(ctx context.Context, in *GenerateClientConfigRequest, opts ...grpc.CallOption) (*GenerateClientConfigResponse, error)
 	// Update checks for, stages, and (optionally) applies OS and/or k0s
@@ -205,6 +208,16 @@ func (c *machineServiceClient) ApplyConfig(ctx context.Context, in *ApplyConfigR
 	return out, nil
 }
 
+func (c *machineServiceClient) GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetConfigResponse)
+	err := c.cc.Invoke(ctx, MachineService_GetConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *machineServiceClient) GenerateClientConfig(ctx context.Context, in *GenerateClientConfigRequest, opts ...grpc.CallOption) (*GenerateClientConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GenerateClientConfigResponse)
@@ -294,6 +307,8 @@ type MachineServiceServer interface {
 	Reset(context.Context, *ResetRequest) (*ResetResponse, error)
 	// ApplyConfig writes the apxconfig machine configuration.
 	ApplyConfig(context.Context, *ApplyConfigRequest) (*ApplyConfigResponse, error)
+	// GetConfig returns the applied machine configuration (key material masked).
+	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	// GenerateClientConfig issues a client identity signed by the node CA.
 	GenerateClientConfig(context.Context, *GenerateClientConfigRequest) (*GenerateClientConfigResponse, error)
 	// Update checks for, stages, and (optionally) applies OS and/or k0s
@@ -345,6 +360,9 @@ func (UnimplementedMachineServiceServer) Reset(context.Context, *ResetRequest) (
 }
 func (UnimplementedMachineServiceServer) ApplyConfig(context.Context, *ApplyConfigRequest) (*ApplyConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ApplyConfig not implemented")
+}
+func (UnimplementedMachineServiceServer) GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetConfig not implemented")
 }
 func (UnimplementedMachineServiceServer) GenerateClientConfig(context.Context, *GenerateClientConfigRequest) (*GenerateClientConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GenerateClientConfig not implemented")
@@ -570,6 +588,24 @@ func _MachineService_ApplyConfig_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MachineService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MachineServiceServer).GetConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MachineService_GetConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MachineServiceServer).GetConfig(ctx, req.(*GetConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MachineService_GenerateClientConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GenerateClientConfigRequest)
 	if err := dec(in); err != nil {
@@ -674,6 +710,10 @@ var MachineService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ApplyConfig",
 			Handler:    _MachineService_ApplyConfig_Handler,
+		},
+		{
+			MethodName: "GetConfig",
+			Handler:    _MachineService_GetConfig_Handler,
 		},
 		{
 			MethodName: "GenerateClientConfig",

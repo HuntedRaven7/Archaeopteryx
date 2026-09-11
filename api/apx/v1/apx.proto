@@ -42,6 +42,9 @@ service MachineService {
   // ApplyConfig writes the apxconfig machine configuration.
   rpc ApplyConfig(ApplyConfigRequest) returns (ApplyConfigResponse);
 
+  // GetConfig returns the applied machine configuration (key material masked).
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+
   // GenerateClientConfig issues a client identity signed by the node CA.
   rpc GenerateClientConfig(GenerateClientConfigRequest) returns (GenerateClientConfigResponse);
 
@@ -189,10 +192,17 @@ message ResetResponse {
 message ApplyConfigRequest {
   string config = 1;
   bool reboot = 2;
+  string maintenance_token = 3;
 }
 
 message ApplyConfigResponse {
   string message = 1;
+}
+
+message GetConfigRequest {}
+
+message GetConfigResponse {
+  string config = 1;
 }
 
 message GenerateClientConfigRequest {

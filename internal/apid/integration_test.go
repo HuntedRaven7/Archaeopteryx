@@ -3,6 +3,7 @@ package apid
 import (
 	"context"
 	"net"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -118,8 +119,13 @@ func startTestServerEndpoint(t *testing.T) (string, func()) {
 func startTestServer(t *testing.T) (*Server, string, func()) {
 	t.Helper()
 	endpoint := freePort(t)
+	stateDir := t.TempDir()
 
-	srv, err := New(Config{Listen: endpoint, StateDir: t.TempDir()})
+	srv, err := New(Config{
+		Listen:     endpoint,
+		StateDir:   stateDir,
+		ConfigPath: filepath.Join(stateDir, "config.yaml"),
+	})
 	if err != nil {
 		t.Fatalf("apid.New: %v", err)
 	}

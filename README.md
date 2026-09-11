@@ -23,28 +23,37 @@ just cross   # linux/amd64 + linux/arm64 static binaries
 just proto   # regenerate protobuf/gRPC code (buf)
 ```
 
-## First boot (current milestone)
+## Onboarding (maintenance mode)
 
 `apxd` generates a node CA, a server identity, and an admin client identity
-under its state directory (`-state-dir`, default `/var/lib/archaeopteryx`)
-on first start, then serves mTLS gRPC on `:50000`.
+under its state directory (`-state-dir`, default `/var/lib/archaeopteryx`) on
+first start, then serves mTLS gRPC on `:50000`. While unconfigured it is in
+**maintenance mode** and prints a one-per-boot onboarding token.
 
 ```sh
-# node
-apxd -listen 0.0.0.0:50000 -state-dir /var/lib/archaeopteryx
+# workstation: generate the machine config + client bundle (offline)
+apxctl gen config factory node1 --endpoint 10.0.0.5:50000 --hostname node1 \
+       --output-dir ./apx
+# -> ./apx/apxconfig.yaml, apxctl.yaml, ca.crt, admin.crt, admin.key
 
-# workstation
-apxctl --endpoint <node>:50000 \
-       --ca ca.crt --cert admin.crt --key admin.key \
-       version
-apxctl --endpoint <node>:50000 \
-       --ca ca.crt --cert admin.crt --key admin.key \
-       status
+# node admin shell: apply the config with the printed token
+apxctl --endpoint 127.0.0.1:50000 \
+       --ca /var/lib/archaeopteryx/ca.crt \
+       --cert /var/lib/archaeopteryx/admin.crt \
+       --key /var/lib/archaeopteryx/admin.key \
+       apply-config ./apx/apxconfig.yaml --maintenance-token <token>
+
+# workstation: connect over the new trust anchor
+apxctl --bundle ./apx/apxctl.yaml status
+apxctl --bundle ./apx/apxctl.yaml config get
 ```
 
-Onboarding (config-based cert provisioning and maintenance mode), `bootstrap`,
-`update`/`rollback`, logs/services, and lifecycle commands land in the upcoming
-milestones tracked in [PLAN.md](PLAN.md).
+Applying the config bakes the hostname, swaps the CA and server identity, and
+drops the bootstrap CA key + onboarding token, so the bootstrap admin identity
+stops working; use the generated bundle afterwards.
+
+`bootstrap`, `update`/`rollback`, logs/services, and lifecycle commands land in
+the upcoming milestones tracked in [PLAN.md](PLAN.md).
 
 ## License
 

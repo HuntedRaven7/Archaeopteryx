@@ -232,7 +232,7 @@ func (x UpdateRequest_Component) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use UpdateRequest_Component.Descriptor instead.
 func (UpdateRequest_Component) EnumDescriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{27, 0}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{29, 0}
 }
 
 type VersionRequest struct {
@@ -1440,11 +1440,12 @@ func (x *ResetResponse) GetMessage() string {
 }
 
 type ApplyConfigRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Config        string                 `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
-	Reboot        bool                   `protobuf:"varint,2,opt,name=reboot,proto3" json:"reboot,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Config           string                 `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	Reboot           bool                   `protobuf:"varint,2,opt,name=reboot,proto3" json:"reboot,omitempty"`
+	MaintenanceToken string                 `protobuf:"bytes,3,opt,name=maintenance_token,json=maintenanceToken,proto3" json:"maintenance_token,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ApplyConfigRequest) Reset() {
@@ -1491,6 +1492,13 @@ func (x *ApplyConfigRequest) GetReboot() bool {
 	return false
 }
 
+func (x *ApplyConfigRequest) GetMaintenanceToken() string {
+	if x != nil {
+		return x.MaintenanceToken
+	}
+	return ""
+}
+
 type ApplyConfigResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
@@ -1535,6 +1543,86 @@ func (x *ApplyConfigResponse) GetMessage() string {
 	return ""
 }
 
+type GetConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetConfigRequest) Reset() {
+	*x = GetConfigRequest{}
+	mi := &file_apx_v1_apx_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetConfigRequest) ProtoMessage() {}
+
+func (x *GetConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_apx_v1_apx_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetConfigRequest.ProtoReflect.Descriptor instead.
+func (*GetConfigRequest) Descriptor() ([]byte, []int) {
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{25}
+}
+
+type GetConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Config        string                 `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetConfigResponse) Reset() {
+	*x = GetConfigResponse{}
+	mi := &file_apx_v1_apx_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetConfigResponse) ProtoMessage() {}
+
+func (x *GetConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_apx_v1_apx_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetConfigResponse.ProtoReflect.Descriptor instead.
+func (*GetConfigResponse) Descriptor() ([]byte, []int) {
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetConfigResponse) GetConfig() string {
+	if x != nil {
+		return x.Config
+	}
+	return ""
+}
+
 type GenerateClientConfigRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -1550,7 +1638,7 @@ type GenerateClientConfigRequest struct {
 
 func (x *GenerateClientConfigRequest) Reset() {
 	*x = GenerateClientConfigRequest{}
-	mi := &file_apx_v1_apx_proto_msgTypes[25]
+	mi := &file_apx_v1_apx_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1562,7 +1650,7 @@ func (x *GenerateClientConfigRequest) String() string {
 func (*GenerateClientConfigRequest) ProtoMessage() {}
 
 func (x *GenerateClientConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[25]
+	mi := &file_apx_v1_apx_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1575,7 +1663,7 @@ func (x *GenerateClientConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateClientConfigRequest.ProtoReflect.Descriptor instead.
 func (*GenerateClientConfigRequest) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{25}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GenerateClientConfigRequest) GetName() string {
@@ -1639,7 +1727,7 @@ type GenerateClientConfigResponse struct {
 
 func (x *GenerateClientConfigResponse) Reset() {
 	*x = GenerateClientConfigResponse{}
-	mi := &file_apx_v1_apx_proto_msgTypes[26]
+	mi := &file_apx_v1_apx_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1651,7 +1739,7 @@ func (x *GenerateClientConfigResponse) String() string {
 func (*GenerateClientConfigResponse) ProtoMessage() {}
 
 func (x *GenerateClientConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[26]
+	mi := &file_apx_v1_apx_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1664,7 +1752,7 @@ func (x *GenerateClientConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateClientConfigResponse.ProtoReflect.Descriptor instead.
 func (*GenerateClientConfigResponse) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{26}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GenerateClientConfigResponse) GetCa() string {
@@ -1707,7 +1795,7 @@ type UpdateRequest struct {
 
 func (x *UpdateRequest) Reset() {
 	*x = UpdateRequest{}
-	mi := &file_apx_v1_apx_proto_msgTypes[27]
+	mi := &file_apx_v1_apx_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1719,7 +1807,7 @@ func (x *UpdateRequest) String() string {
 func (*UpdateRequest) ProtoMessage() {}
 
 func (x *UpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[27]
+	mi := &file_apx_v1_apx_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1732,7 +1820,7 @@ func (x *UpdateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRequest) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{27}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *UpdateRequest) GetComponent() UpdateRequest_Component {
@@ -1774,7 +1862,7 @@ type UpdatePlan struct {
 
 func (x *UpdatePlan) Reset() {
 	*x = UpdatePlan{}
-	mi := &file_apx_v1_apx_proto_msgTypes[28]
+	mi := &file_apx_v1_apx_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1786,7 +1874,7 @@ func (x *UpdatePlan) String() string {
 func (*UpdatePlan) ProtoMessage() {}
 
 func (x *UpdatePlan) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[28]
+	mi := &file_apx_v1_apx_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1799,7 +1887,7 @@ func (x *UpdatePlan) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePlan.ProtoReflect.Descriptor instead.
 func (*UpdatePlan) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{28}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdatePlan) GetComponents() []*UpdateComponent {
@@ -1839,7 +1927,7 @@ type UpdateComponent struct {
 
 func (x *UpdateComponent) Reset() {
 	*x = UpdateComponent{}
-	mi := &file_apx_v1_apx_proto_msgTypes[29]
+	mi := &file_apx_v1_apx_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1851,7 +1939,7 @@ func (x *UpdateComponent) String() string {
 func (*UpdateComponent) ProtoMessage() {}
 
 func (x *UpdateComponent) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[29]
+	mi := &file_apx_v1_apx_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1864,7 +1952,7 @@ func (x *UpdateComponent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateComponent.ProtoReflect.Descriptor instead.
 func (*UpdateComponent) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{29}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *UpdateComponent) GetName() string {
@@ -1937,7 +2025,7 @@ type UpdateResponse struct {
 
 func (x *UpdateResponse) Reset() {
 	*x = UpdateResponse{}
-	mi := &file_apx_v1_apx_proto_msgTypes[30]
+	mi := &file_apx_v1_apx_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1949,7 +2037,7 @@ func (x *UpdateResponse) String() string {
 func (*UpdateResponse) ProtoMessage() {}
 
 func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[30]
+	mi := &file_apx_v1_apx_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1962,7 +2050,7 @@ func (x *UpdateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateResponse.ProtoReflect.Descriptor instead.
 func (*UpdateResponse) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{30}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *UpdateResponse) GetPayload() isUpdateResponse_Payload {
@@ -2030,7 +2118,7 @@ type RollbackRequest struct {
 
 func (x *RollbackRequest) Reset() {
 	*x = RollbackRequest{}
-	mi := &file_apx_v1_apx_proto_msgTypes[31]
+	mi := &file_apx_v1_apx_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2042,7 +2130,7 @@ func (x *RollbackRequest) String() string {
 func (*RollbackRequest) ProtoMessage() {}
 
 func (x *RollbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[31]
+	mi := &file_apx_v1_apx_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2055,7 +2143,7 @@ func (x *RollbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackRequest.ProtoReflect.Descriptor instead.
 func (*RollbackRequest) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{31}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *RollbackRequest) GetReboot() bool {
@@ -2074,7 +2162,7 @@ type RollbackResponse struct {
 
 func (x *RollbackResponse) Reset() {
 	*x = RollbackResponse{}
-	mi := &file_apx_v1_apx_proto_msgTypes[32]
+	mi := &file_apx_v1_apx_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2086,7 +2174,7 @@ func (x *RollbackResponse) String() string {
 func (*RollbackResponse) ProtoMessage() {}
 
 func (x *RollbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[32]
+	mi := &file_apx_v1_apx_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2099,7 +2187,7 @@ func (x *RollbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackResponse.ProtoReflect.Descriptor instead.
 func (*RollbackResponse) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{32}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *RollbackResponse) GetMessage() string {
@@ -2117,7 +2205,7 @@ type EventsRequest struct {
 
 func (x *EventsRequest) Reset() {
 	*x = EventsRequest{}
-	mi := &file_apx_v1_apx_proto_msgTypes[33]
+	mi := &file_apx_v1_apx_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2129,7 +2217,7 @@ func (x *EventsRequest) String() string {
 func (*EventsRequest) ProtoMessage() {}
 
 func (x *EventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[33]
+	mi := &file_apx_v1_apx_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2142,7 +2230,7 @@ func (x *EventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventsRequest.ProtoReflect.Descriptor instead.
 func (*EventsRequest) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{33}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{35}
 }
 
 type Event struct {
@@ -2158,7 +2246,7 @@ type Event struct {
 
 func (x *Event) Reset() {
 	*x = Event{}
-	mi := &file_apx_v1_apx_proto_msgTypes[34]
+	mi := &file_apx_v1_apx_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2170,7 +2258,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_apx_v1_apx_proto_msgTypes[34]
+	mi := &file_apx_v1_apx_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2183,7 +2271,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_apx_v1_apx_proto_rawDescGZIP(), []int{34}
+	return file_apx_v1_apx_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *Event) GetId() string {
@@ -2325,12 +2413,16 @@ const file_apx_v1_apx_proto_rawDesc = "" +
 	"\fResetRequest\x12\x12\n" +
 	"\x04wipe\x18\x01 \x01(\bR\x04wipe\")\n" +
 	"\rResetResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"D\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\"q\n" +
 	"\x12ApplyConfigRequest\x12\x16\n" +
 	"\x06config\x18\x01 \x01(\tR\x06config\x12\x16\n" +
-	"\x06reboot\x18\x02 \x01(\bR\x06reboot\"/\n" +
+	"\x06reboot\x18\x02 \x01(\bR\x06reboot\x12+\n" +
+	"\x11maintenance_token\x18\x03 \x01(\tR\x10maintenanceToken\"/\n" +
 	"\x13ApplyConfigResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"\xb9\x01\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\"\x12\n" +
+	"\x10GetConfigRequest\"+\n" +
+	"\x11GetConfigResponse\x12\x16\n" +
+	"\x06config\x18\x01 \x01(\tR\x06config\"\xb9\x01\n" +
 	"\x1bGenerateClientConfigRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1c\n" +
 	"\tendpoints\x18\x02 \x03(\tR\tendpoints\x12\x0e\n" +
@@ -2391,7 +2483,7 @@ const file_apx_v1_apx_proto_rawDesc = "" +
 	"\bmetadata\x18\x05 \x03(\v2\x1b.apx.v1.Event.MetadataEntryR\bmetadata\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xe8\a\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xaa\b\n" +
 	"\x0eMachineService\x12:\n" +
 	"\aVersion\x12\x16.apx.v1.VersionRequest\x1a\x17.apx.v1.VersionResponse\x12@\n" +
 	"\tGetStatus\x12\x18.apx.v1.GetStatusRequest\x1a\x19.apx.v1.GetStatusResponse\x12@\n" +
@@ -2404,7 +2496,8 @@ const file_apx_v1_apx_proto_rawDesc = "" +
 	"\x06Reboot\x12\x15.apx.v1.RebootRequest\x1a\x16.apx.v1.RebootResponse\x12=\n" +
 	"\bShutdown\x12\x17.apx.v1.ShutdownRequest\x1a\x18.apx.v1.ShutdownResponse\x124\n" +
 	"\x05Reset\x12\x14.apx.v1.ResetRequest\x1a\x15.apx.v1.ResetResponse\x12F\n" +
-	"\vApplyConfig\x12\x1a.apx.v1.ApplyConfigRequest\x1a\x1b.apx.v1.ApplyConfigResponse\x12a\n" +
+	"\vApplyConfig\x12\x1a.apx.v1.ApplyConfigRequest\x1a\x1b.apx.v1.ApplyConfigResponse\x12@\n" +
+	"\tGetConfig\x12\x18.apx.v1.GetConfigRequest\x1a\x19.apx.v1.GetConfigResponse\x12a\n" +
 	"\x14GenerateClientConfig\x12#.apx.v1.GenerateClientConfigRequest\x1a$.apx.v1.GenerateClientConfigResponse\x129\n" +
 	"\x06Update\x12\x15.apx.v1.UpdateRequest\x1a\x16.apx.v1.UpdateResponse0\x01\x12=\n" +
 	"\bRollback\x12\x17.apx.v1.RollbackRequest\x1a\x18.apx.v1.RollbackResponse\x120\n" +
@@ -2423,7 +2516,7 @@ func file_apx_v1_apx_proto_rawDescGZIP() []byte {
 }
 
 var file_apx_v1_apx_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_apx_v1_apx_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_apx_v1_apx_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
 var file_apx_v1_apx_proto_goTypes = []any{
 	(KubernetesStatus_State)(0),          // 0: apx.v1.KubernetesStatus.State
 	(ServiceActionRequest_Action)(0),     // 1: apx.v1.ServiceActionRequest.Action
@@ -2454,17 +2547,19 @@ var file_apx_v1_apx_proto_goTypes = []any{
 	(*ResetResponse)(nil),                // 26: apx.v1.ResetResponse
 	(*ApplyConfigRequest)(nil),           // 27: apx.v1.ApplyConfigRequest
 	(*ApplyConfigResponse)(nil),          // 28: apx.v1.ApplyConfigResponse
-	(*GenerateClientConfigRequest)(nil),  // 29: apx.v1.GenerateClientConfigRequest
-	(*GenerateClientConfigResponse)(nil), // 30: apx.v1.GenerateClientConfigResponse
-	(*UpdateRequest)(nil),                // 31: apx.v1.UpdateRequest
-	(*UpdatePlan)(nil),                   // 32: apx.v1.UpdatePlan
-	(*UpdateComponent)(nil),              // 33: apx.v1.UpdateComponent
-	(*UpdateResponse)(nil),               // 34: apx.v1.UpdateResponse
-	(*RollbackRequest)(nil),              // 35: apx.v1.RollbackRequest
-	(*RollbackResponse)(nil),             // 36: apx.v1.RollbackResponse
-	(*EventsRequest)(nil),                // 37: apx.v1.EventsRequest
-	(*Event)(nil),                        // 38: apx.v1.Event
-	nil,                                  // 39: apx.v1.Event.MetadataEntry
+	(*GetConfigRequest)(nil),             // 29: apx.v1.GetConfigRequest
+	(*GetConfigResponse)(nil),            // 30: apx.v1.GetConfigResponse
+	(*GenerateClientConfigRequest)(nil),  // 31: apx.v1.GenerateClientConfigRequest
+	(*GenerateClientConfigResponse)(nil), // 32: apx.v1.GenerateClientConfigResponse
+	(*UpdateRequest)(nil),                // 33: apx.v1.UpdateRequest
+	(*UpdatePlan)(nil),                   // 34: apx.v1.UpdatePlan
+	(*UpdateComponent)(nil),              // 35: apx.v1.UpdateComponent
+	(*UpdateResponse)(nil),               // 36: apx.v1.UpdateResponse
+	(*RollbackRequest)(nil),              // 37: apx.v1.RollbackRequest
+	(*RollbackResponse)(nil),             // 38: apx.v1.RollbackResponse
+	(*EventsRequest)(nil),                // 39: apx.v1.EventsRequest
+	(*Event)(nil),                        // 40: apx.v1.Event
+	nil,                                  // 41: apx.v1.Event.MetadataEntry
 }
 var file_apx_v1_apx_proto_depIdxs = []int32{
 	8,  // 0: apx.v1.GetStatusResponse.boot_slot:type_name -> apx.v1.SlotInfo
@@ -2474,9 +2569,9 @@ var file_apx_v1_apx_proto_depIdxs = []int32{
 	1,  // 4: apx.v1.ServiceActionRequest.action:type_name -> apx.v1.ServiceActionRequest.Action
 	2,  // 5: apx.v1.RebootRequest.mode:type_name -> apx.v1.RebootRequest.Mode
 	3,  // 6: apx.v1.UpdateRequest.component:type_name -> apx.v1.UpdateRequest.Component
-	33, // 7: apx.v1.UpdatePlan.components:type_name -> apx.v1.UpdateComponent
-	32, // 8: apx.v1.UpdateResponse.plan:type_name -> apx.v1.UpdatePlan
-	39, // 9: apx.v1.Event.metadata:type_name -> apx.v1.Event.MetadataEntry
+	35, // 7: apx.v1.UpdatePlan.components:type_name -> apx.v1.UpdateComponent
+	34, // 8: apx.v1.UpdateResponse.plan:type_name -> apx.v1.UpdatePlan
+	41, // 9: apx.v1.Event.metadata:type_name -> apx.v1.Event.MetadataEntry
 	4,  // 10: apx.v1.MachineService.Version:input_type -> apx.v1.VersionRequest
 	6,  // 11: apx.v1.MachineService.GetStatus:input_type -> apx.v1.GetStatusRequest
 	10, // 12: apx.v1.MachineService.Bootstrap:input_type -> apx.v1.BootstrapRequest
@@ -2488,27 +2583,29 @@ var file_apx_v1_apx_proto_depIdxs = []int32{
 	23, // 18: apx.v1.MachineService.Shutdown:input_type -> apx.v1.ShutdownRequest
 	25, // 19: apx.v1.MachineService.Reset:input_type -> apx.v1.ResetRequest
 	27, // 20: apx.v1.MachineService.ApplyConfig:input_type -> apx.v1.ApplyConfigRequest
-	29, // 21: apx.v1.MachineService.GenerateClientConfig:input_type -> apx.v1.GenerateClientConfigRequest
-	31, // 22: apx.v1.MachineService.Update:input_type -> apx.v1.UpdateRequest
-	35, // 23: apx.v1.MachineService.Rollback:input_type -> apx.v1.RollbackRequest
-	37, // 24: apx.v1.MachineService.Events:input_type -> apx.v1.EventsRequest
-	5,  // 25: apx.v1.MachineService.Version:output_type -> apx.v1.VersionResponse
-	7,  // 26: apx.v1.MachineService.GetStatus:output_type -> apx.v1.GetStatusResponse
-	11, // 27: apx.v1.MachineService.Bootstrap:output_type -> apx.v1.BootstrapResponse
-	13, // 28: apx.v1.MachineService.Kubeconfig:output_type -> apx.v1.KubeconfigResponse
-	15, // 29: apx.v1.MachineService.Logs:output_type -> apx.v1.LogsResponse
-	18, // 30: apx.v1.MachineService.ListServices:output_type -> apx.v1.ListServicesResponse
-	20, // 31: apx.v1.MachineService.ServiceAction:output_type -> apx.v1.ServiceActionResponse
-	22, // 32: apx.v1.MachineService.Reboot:output_type -> apx.v1.RebootResponse
-	24, // 33: apx.v1.MachineService.Shutdown:output_type -> apx.v1.ShutdownResponse
-	26, // 34: apx.v1.MachineService.Reset:output_type -> apx.v1.ResetResponse
-	28, // 35: apx.v1.MachineService.ApplyConfig:output_type -> apx.v1.ApplyConfigResponse
-	30, // 36: apx.v1.MachineService.GenerateClientConfig:output_type -> apx.v1.GenerateClientConfigResponse
-	34, // 37: apx.v1.MachineService.Update:output_type -> apx.v1.UpdateResponse
-	36, // 38: apx.v1.MachineService.Rollback:output_type -> apx.v1.RollbackResponse
-	38, // 39: apx.v1.MachineService.Events:output_type -> apx.v1.Event
-	25, // [25:40] is the sub-list for method output_type
-	10, // [10:25] is the sub-list for method input_type
+	29, // 21: apx.v1.MachineService.GetConfig:input_type -> apx.v1.GetConfigRequest
+	31, // 22: apx.v1.MachineService.GenerateClientConfig:input_type -> apx.v1.GenerateClientConfigRequest
+	33, // 23: apx.v1.MachineService.Update:input_type -> apx.v1.UpdateRequest
+	37, // 24: apx.v1.MachineService.Rollback:input_type -> apx.v1.RollbackRequest
+	39, // 25: apx.v1.MachineService.Events:input_type -> apx.v1.EventsRequest
+	5,  // 26: apx.v1.MachineService.Version:output_type -> apx.v1.VersionResponse
+	7,  // 27: apx.v1.MachineService.GetStatus:output_type -> apx.v1.GetStatusResponse
+	11, // 28: apx.v1.MachineService.Bootstrap:output_type -> apx.v1.BootstrapResponse
+	13, // 29: apx.v1.MachineService.Kubeconfig:output_type -> apx.v1.KubeconfigResponse
+	15, // 30: apx.v1.MachineService.Logs:output_type -> apx.v1.LogsResponse
+	18, // 31: apx.v1.MachineService.ListServices:output_type -> apx.v1.ListServicesResponse
+	20, // 32: apx.v1.MachineService.ServiceAction:output_type -> apx.v1.ServiceActionResponse
+	22, // 33: apx.v1.MachineService.Reboot:output_type -> apx.v1.RebootResponse
+	24, // 34: apx.v1.MachineService.Shutdown:output_type -> apx.v1.ShutdownResponse
+	26, // 35: apx.v1.MachineService.Reset:output_type -> apx.v1.ResetResponse
+	28, // 36: apx.v1.MachineService.ApplyConfig:output_type -> apx.v1.ApplyConfigResponse
+	30, // 37: apx.v1.MachineService.GetConfig:output_type -> apx.v1.GetConfigResponse
+	32, // 38: apx.v1.MachineService.GenerateClientConfig:output_type -> apx.v1.GenerateClientConfigResponse
+	36, // 39: apx.v1.MachineService.Update:output_type -> apx.v1.UpdateResponse
+	38, // 40: apx.v1.MachineService.Rollback:output_type -> apx.v1.RollbackResponse
+	40, // 41: apx.v1.MachineService.Events:output_type -> apx.v1.Event
+	26, // [26:42] is the sub-list for method output_type
+	10, // [10:26] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
 	10, // [10:10] is the sub-list for extension extendee
 	0,  // [0:10] is the sub-list for field type_name
@@ -2519,7 +2616,7 @@ func file_apx_v1_apx_proto_init() {
 	if File_apx_v1_apx_proto != nil {
 		return
 	}
-	file_apx_v1_apx_proto_msgTypes[30].OneofWrappers = []any{
+	file_apx_v1_apx_proto_msgTypes[32].OneofWrappers = []any{
 		(*UpdateResponse_Plan)(nil),
 		(*UpdateResponse_Progress)(nil),
 		(*UpdateResponse_Error)(nil),
@@ -2530,7 +2627,7 @@ func file_apx_v1_apx_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_apx_v1_apx_proto_rawDesc), len(file_apx_v1_apx_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   36,
+			NumMessages:   38,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

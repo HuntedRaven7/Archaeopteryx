@@ -4,13 +4,8 @@ package config
 
 import (
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/x509"
-	"crypto/x509/pkix"
-	"encoding/pem"
-	"errors"
 	"fmt"
-	"math/big"
 	"net"
 	"os"
 	"path/filepath"
@@ -64,25 +59,10 @@ func EnsurePKI(dir string) (*PKI, error) {
 
 func generatePKI(dir string) (*PKI, error) {
 	now := time.Now()
-	caKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	capem, keypem, ca, err := createCA("apx-bootstrap-ca", caTTLDays, now)
 	if err != nil {
 		return nil, err
 	}
-	caTmpl := &x509.Certificate{
-		SerialNumber:          big.NewInt(now.Unix()),
-		Subject:               pkix.Name{CommonName: "apx-ca"},
-		NotBefore:             now.Add(-time.Hour),
-		NotAfter:              now.AddDate(caTTLDays, 0, 0),
-		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-	}
-	caDer, err := x509.CreateCertificate(rand.Reader, caTmpl, caTmpl, &caKey.PublicKey, caKey)
-	if err != nil {
-		return nil, err
-	}
-	capem := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caDer})
-	keypem := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(caKey)})
 	if err := writePriv(filepath.Join(dir, CAFile), capem); err != nil {
 		return nil, err
 	}
@@ -93,45 +73,18 @@ func generatePKI(dir string) (*PKI, error) {
 
 	hostname, _ := os.Hostname()
 	ips := localIPs()
-	if _, err := p.issue("apxd", nil, x509.ExtKeyUsageServerAuth, now, ips,
+	if _, err := p.issue(ca, "apxd", nil, x509.ExtKeyUsageServerAuth, now, ips,
 		[]string{"localhost", hostname, "kubernetes"}); err != nil {
 		return nil, err
 	}
-	if _, err := p.issue("admin", []string{"system:masters"}, x509.ExtKeyUsageClientAuth, now, nil, nil); err != nil {
+	if _, err := p.issue(ca, "admin", []string{"system:masters"}, x509.ExtKeyUsageClientAuth, now, nil, nil); err != nil {
 		return nil, err
 	}
 	return p, nil
 }
 
-func (p *PKI) issue(cn string, org []string, usage x509.ExtKeyUsage, now time.Time, ips []net.IP, dns []string) (tlsIdentity, error) {
-	caDer, _ := pem.Decode(p.capem)
-	keyDer, _ := pem.Decode(p.keypem)
-	if caDer == nil || keyDer == nil {
-		return tlsIdentity{}, errors.New("corrupt CA PEM")
-	}
-	ca, err := x509.ParseCertificate(caDer.Bytes)
-	if err != nil {
-		return tlsIdentity{}, err
-	}
-	caKey, err := x509.ParsePKCS1PrivateKey(keyDer.Bytes)
-	if err != nil {
-		return tlsIdentity{}, err
-	}
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return tlsIdentity{}, err
-	}
-	tmpl := &x509.Certificate{
-		SerialNumber: big.NewInt(now.UnixNano()),
-		Subject:      pkix.Name{CommonName: cn, Organization: org},
-		NotBefore:    now.Add(-time.Hour),
-		NotAfter:     now.AddDate(adminTTLDays, 0, 0),
-		KeyUsage:     x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:  []x509.ExtKeyUsage{usage},
-		IPAddresses:  ips,
-		DNSNames:     dns,
-	}
-	der, err := x509.CreateCertificate(rand.Reader, tmpl, ca, &key.PublicKey, caKey)
+func (p *PKI) issue(ca *caIdentity, cn string, org []string, usage x509.ExtKeyUsage, now time.Time, ips []net.IP, dns []string) (tlsIdentity, error) {
+	certpem, keypem, err := createSignedCert(ca, cn, org, usage, adminTTLDays, now, ips, dns)
 	if err != nil {
 		return tlsIdentity{}, err
 	}
@@ -139,15 +92,13 @@ func (p *PKI) issue(cn string, org []string, usage x509.ExtKeyUsage, now time.Ti
 	if usage == x509.ExtKeyUsageClientAuth {
 		certFile, keyFile = AdminFile, AdminKey
 	}
-	cpem := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-	kpem := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
-	if err := writePriv(filepath.Join(p.dir, certFile), cpem); err != nil {
+	if err := writePriv(filepath.Join(p.dir, certFile), certpem); err != nil {
 		return tlsIdentity{}, err
 	}
-	if err := writePriv(filepath.Join(p.dir, keyFile), kpem); err != nil {
+	if err := writePriv(filepath.Join(p.dir, keyFile), keypem); err != nil {
 		return tlsIdentity{}, err
 	}
-	return tlsIdentity{cert: cpem, key: kpem}, nil
+	return tlsIdentity{cert: certpem, key: keypem}, nil
 }
 
 type tlsIdentity struct {

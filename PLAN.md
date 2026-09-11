@@ -216,7 +216,16 @@ k0s:
 
 1. **Scaffold** — proto + codegen, `apxd` skeleton, `apxctl version/status` round-trip
    (local + mTLS).
-2. **Auth / onboarding** — CA management, `gen config`, `apply-config`, maintenance mode.
+2. **Auth / onboarding** — ✅ CA management, `gen config`, `apply-config`, maintenance mode.
+   - `apxctl gen config <cluster> <endpoint>` (offline) → `apxconfig.yaml` + `apxctl.yaml`
+     bundle + CA/admin identity in `--output-dir`.
+   - Unconfigured daemon serves reloadable mTLS creds backed by a self-generated bootstrap
+     PKI and prints one per-boot onboarding token (maintenance mode).
+   - `apxctl apply-config <file> [--maintenance-token]` swaps hostname, CA, and server
+     identity and deletes the bootstrap CA key + token (config stays at
+     `/var/lib/archaeopteryx/config.yaml`).
+   - Post-apply, old bootstrap clients are rejected; operator connects via
+     `apxctl --bundle apxctl.yaml`. `config get` returns the config redacted (secrets masked).
 3. **systemd / journal** — `logs`, `services`, `service` action.
 4. **k0s** — `bootstrap`, `kubeconfig`, status wiring.
 5. **Update/rollback engine** — auto-determine logic; unit tests on the plan builder
