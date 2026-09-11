@@ -1,0 +1,269 @@
+syntax = "proto3";
+
+package apx.v1;
+
+option go_package = "github.com/HuntedRaven7/Archaeopteryx/api/apx/v1;apxv1";
+
+// MachineService is the node-side control plane API, modeled on the shape of
+// Talos' MachineService but trimmed to what a k0s single-node microraptor
+// factory OS needs.
+service MachineService {
+  // Version returns build information for the running daemon.
+  rpc Version(VersionRequest) returns (VersionResponse);
+
+  // GetStatus returns host OS, boot slot, and k0s state.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+
+  // Bootstrap stages and merges the k0s sysext, starts the controller, and
+  // waits for the node to become Ready.
+  rpc Bootstrap(BootstrapRequest) returns (BootstrapResponse);
+
+  // Kubeconfig returns an admin kubeconfig for the k0s cluster.
+  rpc Kubeconfig(KubeconfigRequest) returns (KubeconfigResponse);
+
+  // Logs streams journald entries, optionally filtered by unit and following.
+  rpc Logs(LogsRequest) returns (stream LogsResponse);
+
+  // ListServices returns systemd unit states.
+  rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
+
+  // ServiceAction starts, stops, restarts, or reloads a systemd unit.
+  rpc ServiceAction(ServiceActionRequest) returns (ServiceActionResponse);
+
+  // Reboot reboots the node (graceful or poweroff).
+  rpc Reboot(RebootRequest) returns (RebootResponse);
+
+  // Shutdown powers the node off.
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+
+  // Reset stops k0s and wipes /var state; --wipe resets the full node.
+  rpc Reset(ResetRequest) returns (ResetResponse);
+
+  // ApplyConfig writes the apxconfig machine configuration.
+  rpc ApplyConfig(ApplyConfigRequest) returns (ApplyConfigResponse);
+
+  // GenerateClientConfig issues a client identity signed by the node CA.
+  rpc GenerateClientConfig(GenerateClientConfigRequest) returns (GenerateClientConfigResponse);
+
+  // Update checks for, stages, and (optionally) applies OS and/or k0s
+  // updates, streaming a plan and progress.
+  rpc Update(UpdateRequest) returns (stream UpdateResponse);
+
+  // Rollback forces a boot into the previous A/B slot.
+  rpc Rollback(RollbackRequest) returns (RollbackResponse);
+
+  // Events streams machine, update, and k0s events.
+  rpc Events(EventsRequest) returns (stream Event);
+}
+
+message VersionRequest {}
+
+message VersionResponse {
+  string version = 1;
+  string commit = 2;
+  string build_date = 3;
+  string go_version = 4;
+  string platform = 5;
+}
+
+message GetStatusRequest {}
+
+message GetStatusResponse {
+  string hostname = 1;
+  string os_id = 2;
+  string os_name = 3;
+  string os_pretty_name = 4;
+  string os_version = 5;
+  string os_image_version = 6;
+  string kernel_release = 7;
+  string boot_id = 8;
+  int64 uptime_seconds = 9;
+  SlotInfo boot_slot = 10;
+  KubernetesStatus kubernetes = 11;
+}
+
+message SlotInfo {
+  string current = 1;
+  string running_version = 2;
+  string installed_version = 3;
+}
+
+message KubernetesStatus {
+  enum State {
+    STATE_UNSPECIFIED = 0;
+    DISABLED = 1;
+    STOPPED = 2;
+    ACTIVATING = 3;
+    ACTIVE = 4;
+    FAILED = 5;
+  }
+  State state = 1;
+  bool sysext_merged = 2;
+  string version = 3;
+  string node_name = 4;
+  string role = 5;
+  bool ready = 6;
+}
+
+message BootstrapRequest {}
+
+message BootstrapResponse {
+  string message = 1;
+}
+
+message KubeconfigRequest {}
+
+message KubeconfigResponse {
+  bytes kubeconfig = 1;
+}
+
+message LogsRequest {
+  string unit = 1;
+  bool follow = 2;
+  int32 tail_lines = 3;
+  string since = 4;
+}
+
+message LogsResponse {
+  bytes data = 1;
+}
+
+message ListServicesRequest {}
+
+message ServiceInfo {
+  string name = 1;
+  string state = 2;
+  string sub_state = 3;
+  string description = 4;
+  string active_state = 5;
+  int64 active_enter_usec = 6;
+}
+
+message ListServicesResponse {
+  repeated ServiceInfo services = 1;
+}
+
+message ServiceActionRequest {
+  enum Action {
+    ACTION_UNSPECIFIED = 0;
+    START = 1;
+    STOP = 2;
+    RESTART = 3;
+    RELOAD = 4;
+  }
+  string unit = 1;
+  Action action = 2;
+}
+
+message ServiceActionResponse {
+  string message = 1;
+}
+
+message RebootRequest {
+  enum Mode {
+    MODE_UNSPECIFIED = 0;
+    MODE_GRACEFUL = 1;
+    MODE_POWEROFF = 2;
+  }
+  Mode mode = 1;
+}
+
+message RebootResponse {
+  string message = 1;
+}
+
+message ShutdownRequest {}
+
+message ShutdownResponse {
+  string message = 1;
+}
+
+message ResetRequest {
+  bool wipe = 1;
+}
+
+message ResetResponse {
+  string message = 1;
+}
+
+message ApplyConfigRequest {
+  string config = 1;
+  bool reboot = 2;
+}
+
+message ApplyConfigResponse {
+  string message = 1;
+}
+
+message GenerateClientConfigRequest {
+  string name = 1;
+  repeated string endpoints = 2;
+  string ca = 3;
+  string crt = 4;
+  string key = 5;
+  string ttl = 6;
+  string organization = 7;
+}
+
+message GenerateClientConfigResponse {
+  string ca = 1;
+  string crt = 2;
+  string key = 3;
+  string config = 4;
+}
+
+message UpdateRequest {
+  enum Component {
+    COMPONENT_UNSPECIFIED = 0;
+    COMPONENT_ALL = 1;
+    COMPONENT_OS = 2;
+    COMPONENT_K0S = 3;
+  }
+  Component component = 1;
+  bool check_only = 2;
+  bool stage_only = 3;
+  bool reboot = 4;
+}
+
+message UpdatePlan {
+  repeated UpdateComponent components = 1;
+  bool reboot_required = 2;
+  bool reboot_owed = 3;
+}
+
+message UpdateComponent {
+  string name = 1;
+  string title = 2;
+  string current_version = 3;
+  string latest_version = 4;
+  bool update_available = 5;
+  bool reboot_required = 6;
+  string status = 7;
+  string message = 8;
+}
+
+message UpdateResponse {
+  oneof payload {
+    UpdatePlan plan = 1;
+    string progress = 2;
+    string error = 3;
+  }
+}
+
+message RollbackRequest {
+  bool reboot = 1;
+}
+
+message RollbackResponse {
+  string message = 1;
+}
+
+message EventsRequest {}
+
+message Event {
+  string id = 1;
+  int64 timestamp_ns = 2;
+  string type = 3;
+  string message = 4;
+  map<string, string> metadata = 5;
+}
