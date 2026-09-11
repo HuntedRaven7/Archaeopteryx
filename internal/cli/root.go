@@ -18,6 +18,7 @@ type GlobalFlags struct {
 	Cert     string
 	Key      string
 	Bundle   string
+	Context  string
 	Insecure bool
 }
 
@@ -36,6 +37,7 @@ func NewRootCmd() *cobra.Command {
 	root.PersistentFlags().StringVar(&global.Cert, "cert", envOr("APX_CERT", ""), "path to client cert PEM")
 	root.PersistentFlags().StringVar(&global.Key, "key", envOr("APX_KEY", ""), "path to client key PEM")
 	root.PersistentFlags().StringVar(&global.Bundle, "bundle", envOr("APX_BUNDLE", ""), "client bundle (apxctl.yaml) providing endpoint and identity")
+	root.PersistentFlags().StringVar(&global.Context, "context", envOr("APX_CONTEXT", ""), "bundle context to use (default: first)")
 	root.PersistentFlags().BoolVar(&global.Insecure, "insecure", false, "skip TLS verification and client auth")
 
 	root.AddCommand(
@@ -51,6 +53,10 @@ func NewRootCmd() *cobra.Command {
 		newKubeconfigCmd(),
 		newUpdateCmd(),
 		newRollbackCmd(),
+		newRebootCmd(),
+		newShutdownCmd(),
+		newResetCmd(),
+		newEventsCmd(),
 	)
 
 	return root
@@ -95,7 +101,15 @@ func resolvedOptions() (client.Options, error) {
 		if err != nil {
 			return client.Options{}, err
 		}
-		ctx := bd.First()
+		var ctx *config.BundleContext
+		if global.Context != "" {
+			ctx = bd.Contexts[global.Context]
+			if ctx == nil {
+				return client.Options{}, fmt.Errorf("bundle has no context %q", global.Context)
+			}
+		} else {
+			ctx = bd.First()
+		}
 		if ctx == nil {
 			return client.Options{}, fmt.Errorf("bundle has no contexts")
 		}

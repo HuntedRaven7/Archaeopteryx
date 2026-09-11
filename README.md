@@ -71,7 +71,7 @@ apxctl --bundle ./apx/apxctl.yaml kubeconfig --merge   # merge as context apx-<h
 apxctl --bundle ./apx/apxctl.yaml kubeconfig --file ./kubeconfig
 ```
 
-`rollback`, and lifecycle commands land in the upcoming milestones tracked in
+rollback`, and lifecycle commands land in the upcoming milestones tracked in
 [PLAN.md](PLAN.md).
 
 ## Update / rollback
@@ -89,6 +89,23 @@ apxctl --bundle ./apx/apxctl.yaml rollback --reboot         # ...and reboot now
 (kured's `/run/reboot-required` hook covers it with the `staged` strategy) while
 k0s-only updates are merged into the running sysext tree immediately. `rollback`
 pins the other A/B slot via `systemd-boot set-oneshot`.
+
+## Lifecycle
+
+```sh
+apxctl reboot                       # graceful reboot
+apxctl reboot --mode poweroff      # power off instead
+apxctl shutdown                     # power off
+apxctl reset                        # stop k0s + wipe cluster state, then reboot
+apxctl reset --wipe                 # factory reset: also drop config/TLS -> maintenance mode
+apxctl events                       # stream machine/update/k0s events (Ctrl-C to stop)
+```
+
+`reset` without `--wipe` keeps the node's apx identity; `--wipe` removes the
+machine config and TLS material too, so the node boots back into maintenance
+mode. `events` tails the journal, surfacing records from k0s, sysupdate/sysext,
+the apx daemon, and the kernel, plus anything at error priority. A `--context
+<name>` global flag selects a named bundle context when a bundle has several.
 
 ## License
 

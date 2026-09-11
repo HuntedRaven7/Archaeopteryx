@@ -256,7 +256,18 @@ k0s:
    - CLI: `apxctl update [--check] [--component=os|k0s|all] [--reboot]` streams plan +
      progress; `apxctl rollback [--reboot]`. Unit tests: features/pending parsers, version
      comparison (dotted+`v`/k0s styles), plan classification, slot picking.
-6. **Lifecycle** — `reboot`, `shutdown`, `reset`, `events`, context/config polish.
+6. **Lifecycle** — ✅ `reboot`, `shutdown`, `reset`, `events`, context polish.
+   - `internal/machine/lifecycle.go`: `Reboot` (graceful/poweroff), `Shutdown`, `Reset` —
+     stop+disable k0s → `k0s reset` → wipe state dirs (`/var/lib/k0s`, and the apx config +
+     TLS identity with `--wipe`, returning to maintenance mode) → `systemd-sysext unmerge`
+     → reboot. All execs behind seams.
+   - `internal/machine/events.go`: `StreamEvents` tails the journal via
+     `StreamJournal`, filtering to curated units (k0s/sysupdate/sysext/apxd/kernel) plus
+     anything at `ELOG_PRI_ERR` or worse, mapped to typed `NodeEvent`s (k0s/update/machine).
+   - CLI: `apxctl reboot [--mode=graceful|poweroff]`, `apxctl shutdown`, `apxctl reset
+     [--wipe]`, `apxctl events`. `--context <name>` selects a named bundle context
+     (default: first). Live smoke verified the full RPC path against real journald +
+     systemd.
 7. **Packaging** — Microraptor DDI integration + QEMU smoke test
    (`just show-me-the-future`-style).
 8. **Docs + gates** — README, `just check` (fmt, vet, test, golangci-lint).
@@ -264,7 +275,8 @@ k0s:
 ## Verification
 
 - `just fmt` → `just vet` → `just test` (unit: config, plan builder, slot parsing, version
-  compare; golden gRPC tests on loopback) → `just build`.
+  compare, lifecycle cmd sequencing, event predicate; golden gRPC tests on loopback)
+  → `just build`.
 - Cross-compile `linux/amd64` and `linux/arm64`.
 - QEMU smoke test of installer → first boot → `apxctl bootstrap` → `apxctl update
   --check`.

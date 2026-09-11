@@ -240,6 +240,51 @@ func (m *machineServer) Rollback(ctx context.Context, req *apxv1.RollbackRequest
 	return &apxv1.RollbackResponse{Message: msg}, nil
 }
 
+// Reboot reboots (graceful) or poweroffs the node.
+func (m *machineServer) Reboot(ctx context.Context, req *apxv1.RebootRequest) (*apxv1.RebootResponse, error) {
+	mode := machine.RebootModeGraceful
+	if req.Mode == apxv1.RebootRequest_MODE_POWEROFF {
+		mode = machine.RebootModePoweroff
+	}
+	msg, err := machine.Reboot(mode)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "reboot: %v", err)
+	}
+	return &apxv1.RebootResponse{Message: msg}, nil
+}
+
+// Shutdown powers the node off.
+func (m *machineServer) Shutdown(ctx context.Context, req *apxv1.ShutdownRequest) (*apxv1.ShutdownResponse, error) {
+	msg, err := machine.Shutdown()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "shutdown: %v", err)
+	}
+	return &apxv1.ShutdownResponse{Message: msg}, nil
+}
+
+// Reset stops k0s, wipes its state, and reboots. wipe also removes the machine
+// config + TLS identity, returning the node to maintenance mode.
+func (m *machineServer) Reset(ctx context.Context, req *apxv1.ResetRequest) (*apxv1.ResetResponse, error) {
+	msg, err := machine.Reset(req.Wipe)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "reset: %v", err)
+	}
+	return &apxv1.ResetResponse{Message: msg}, nil
+}
+
+// Events streams curated machine/update/k0s events from the journal.
+func (m *machineServer) Events(req *apxv1.EventsRequest, stream grpc.ServerStreamingServer[apxv1.Event]) error {
+	return machine.StreamEvents(stream.Context(), func(e machine.NodeEvent) error {
+		return stream.Send(&apxv1.Event{
+			Id:          e.ID,
+			TimestampNs: e.TimestampNs,
+			Type:        e.Type,
+			Message:     e.Message,
+			Metadata:    e.Metadata,
+		})
+	})
+}
+
 // GetConfig returns the applied machine configuration with secrets masked, or
 // NotFound when the node has not been configured yet.
 func (m *machineServer) GetConfig(ctx context.Context, req *apxv1.GetConfigRequest) (*apxv1.GetConfigResponse, error) {

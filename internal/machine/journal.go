@@ -31,6 +31,8 @@ type JournalEntry struct {
 	Identifier string
 	PID        int
 	Message    string
+	Unit       string
+	Priority   int
 }
 
 // tail returns the number of messages to show, defaulting to a sane size so a
@@ -77,12 +79,18 @@ func parseJournalLine(line []byte) (JournalEntry, error) {
 	if ident == "" {
 		ident = raw["_COMM"]
 	}
+	priority := 6 // syslog default: info
+	if p, err := strconv.Atoi(raw["PRIORITY"]); err == nil {
+		priority = p
+	}
 	return JournalEntry{
 		Timestamp:  ts,
 		Hostname:   raw["_HOSTNAME"],
 		Identifier: ident,
 		PID:        pid,
 		Message:    raw["MESSAGE"],
+		Unit:       raw["_SYSTEMD_UNIT"],
+		Priority:   priority,
 	}, nil
 }
 
