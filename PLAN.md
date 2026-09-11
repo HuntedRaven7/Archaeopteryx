@@ -244,8 +244,18 @@ k0s:
      it into `~/.kube/config` (or `KUBECONFIG`), idempotently replacing prior
      `apx-<host>` entries and switching `current-context`.
    - Status wiring: `GetStatus` already surfaces sysext merge + controller state.
-5. **Update/rollback engine** — auto-determine logic; unit tests on the plan builder
-   (mock `features` output) and version comparison.
+5. **Update/rollback engine** — ✅ `update`, `rollback`, reboot policy.
+   - `internal/machine/sysupdate.go`: `Features()`/`RebootOwed()` wrap `systemd-sysupdate
+     features|pending`, features parsed into `Component`/`Transfer` sections; latest-version
+     discovery via the GitHub `latest/download` HEAD redirect (`Location` header), no API.
+   - `internal/machine/upgrade.go`: `BuildPlan` classifies components (current vs latest,
+     reboot-required unless k0s), `Update` stages via `systemd-sysupdate update
+     --component=<name> --verify=yes`, merges the k0s sysext, then applies the configured
+     reboot strategy (manual|staged|direct); `Rollback` = previous UKI slot → `systemd-boot
+     set-oneshot`, optional reboot. All exec seams are swappable for tests.
+   - CLI: `apxctl update [--check] [--component=os|k0s|all] [--reboot]` streams plan +
+     progress; `apxctl rollback [--reboot]`. Unit tests: features/pending parsers, version
+     comparison (dotted+`v`/k0s styles), plan classification, slot picking.
 6. **Lifecycle** — `reboot`, `shutdown`, `reset`, `events`, context/config polish.
 7. **Packaging** — Microraptor DDI integration + QEMU smoke test
    (`just show-me-the-future`-style).

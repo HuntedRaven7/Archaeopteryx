@@ -49,6 +49,8 @@ func NewRootCmd() *cobra.Command {
 		newServiceCmd(),
 		newBootstrapCmd(),
 		newKubeconfigCmd(),
+		newUpdateCmd(),
+		newRollbackCmd(),
 	)
 
 	return root

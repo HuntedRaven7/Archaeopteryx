@@ -191,6 +191,55 @@ func (m *machineServer) Kubeconfig(ctx context.Context, req *apxv1.KubeconfigReq
 	return &apxv1.KubeconfigResponse{Kubeconfig: out}, nil
 }
 
+// Update runs the auto-determine update flow for the requested components.
+func (m *machineServer) Update(req *apxv1.UpdateRequest, stream grpc.ServerStreamingServer[apxv1.UpdateResponse]) error {
+	component := mapUpdateComponent(req.Component)
+	strategy := "staged"
+	if m.srv.IsConfigured() {
+		if cfg, err := config.LoadMachineConfig(m.srv.ConfigPath()); err == nil {
+			if s := cfg.Update.RebootStrategy; s != "" {
+				strategy = s
+			}
+		}
+	}
+	opts := machine.UpdateOptions{
+		Component:      component,
+		CheckOnly:      req.CheckOnly,
+		Reboot:         req.Reboot,
+		RebootStrategy: strategy,
+		Verify:         true,
+	}
+	_, err := machine.Update(stream.Context(), opts, func(line string) {
+		_ = stream.Send(&apxv1.UpdateResponse{
+			Payload: &apxv1.UpdateResponse_Progress{Progress: line},
+		})
+	})
+	if err != nil {
+		return status.Errorf(codes.Internal, "update: %v", err)
+	}
+	return nil
+}
+
+func mapUpdateComponent(c apxv1.UpdateRequest_Component) string {
+	switch c {
+	case apxv1.UpdateRequest_COMPONENT_OS:
+		return "os"
+	case apxv1.UpdateRequest_COMPONENT_K0S:
+		return "k0s"
+	default:
+		return "all"
+	}
+}
+
+// Rollback pins the previous systemd-boot slot, optionally rebooting.
+func (m *machineServer) Rollback(ctx context.Context, req *apxv1.RollbackRequest) (*apxv1.RollbackResponse, error) {
+	msg, err := machine.Rollback(ctx, req.Reboot)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "rollback: %v", err)
+	}
+	return &apxv1.RollbackResponse{Message: msg}, nil
+}
+
 // GetConfig returns the applied machine configuration with secrets masked, or
 // NotFound when the node has not been configured yet.
 func (m *machineServer) GetConfig(ctx context.Context, req *apxv1.GetConfigRequest) (*apxv1.GetConfigResponse, error) {

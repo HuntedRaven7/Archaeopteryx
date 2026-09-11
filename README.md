@@ -71,8 +71,24 @@ apxctl --bundle ./apx/apxctl.yaml kubeconfig --merge   # merge as context apx-<h
 apxctl --bundle ./apx/apxctl.yaml kubeconfig --file ./kubeconfig
 ```
 
-`update`/`rollback`, and lifecycle commands land in the upcoming milestones
-tracked in [PLAN.md](PLAN.md).
+`rollback`, and lifecycle commands land in the upcoming milestones tracked in
+[PLAN.md](PLAN.md).
+
+## Update / rollback
+
+```sh
+apxctl --bundle ./apx/apxctl.yaml update --check            # plan only (streams the table)
+apxctl --bundle ./apx/apxctl.yaml update                    # apply both axes, staged reboot
+apxctl --bundle ./apx/apxctl.yaml update --component=k0s    # only the k0s sysext (no reboot)
+apxctl --bundle ./apx/apxctl.yaml update --reboot           # apply, then per rebootStrategy
+apxctl --bundle ./apx/apxctl.yaml rollback                  # boot the previous UKI next
+apxctl --bundle ./apx/apxctl.yaml rollback --reboot         # ...and reboot now
+```
+
+`update` auto-determines the flow: OS-only updates are staged and need a reboot
+(kured's `/run/reboot-required` hook covers it with the `staged` strategy) while
+k0s-only updates are merged into the running sysext tree immediately. `rollback`
+pins the other A/B slot via `systemd-boot set-oneshot`.
 
 ## License
 
