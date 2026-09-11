@@ -1,0 +1,37 @@
+[Unit]
+Description=Archaeopteryx control plane daemon (apx API + mTLS)
+Documentation=https://github.com/HuntedRaven7/Archaeopteryx
+After=systemd-journald.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/apxd
+Restart=on-failure
+RestartSec=5s
+
+# The daemon is the node control plane: it needs to drive systemctl
+# (reboot/poweroff/start-stop units), systemd-sysupdate, systemd-sysext,
+# bootctl, and persist the apx PKI + machine config under /var/lib/archaeopteryx.
+User=root
+Group=root
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/archaeopteryx /var/lib/extensions /var/lib/k0s /efi
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=false
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_DAC_OVERRIDE CAP_NET_ADMIN
+SystemCallErrorNumber=EPERM
+PrivateDevices=true
+PrivateUsers=false
+
+[Install]
+WantedBy=multi-user.target

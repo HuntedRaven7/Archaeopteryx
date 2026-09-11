@@ -85,8 +85,9 @@ github.com/HuntedRaven7/Archaeopteryx
 │   │   └── upgrade.go     # upgrade plan builder + reboot policy
 │   ├── config/            # apxconfig decode/validate + TLS generation
 │   └── cli/               # cobra command tree
-├── hack/                  # buf codegen config/scripts
-├── Justfile               # just fmt / lint / test / build / proto
+├── hack/                  # buf codegen config/scripts + smoke/qemu-smoke harnesses
+├── packaging/microraptor/ # systemd unit + preset + DDI layout notes
+├── Justfile               # just fmt / lint / test / build / proto / smoke / image-tree
 └── README.md
 ```
 
@@ -268,8 +269,23 @@ k0s:
      [--wipe]`, `apxctl events`. `--context <name>` selects a named bundle context
      (default: first). Live smoke verified the full RPC path against real journald +
      systemd.
-7. **Packaging** — Microraptor DDI integration + QEMU smoke test
-   (`just show-me-the-future`-style).
+7. **Packaging** — ✅ Microraptor DDI integration + smoke tests.
+   - `packaging/microraptor/`: `apxd.service` (root daemon, `ProtectSystem=strict`
+     with write access to `/var/lib/{archaeopteryx,extensions,k0s}` and `/efi`),
+     `zz-enable-apxd.preset`, and a README that pins placement: `os-apx.bst` copy
+     element staged in `os-stack.bst`, `/var/lib/archaeopteryx` already persisted by
+     `var.mount`, sysupdate verify keys reused as-is.
+   - `just image-tree`: stages `dist/rootfs/` — static `apxd`/`apxctl` +
+     units + preset in the target layout, ready to drop into the DDI.
+   - `hack/smoke.sh` (`just smoke`): full onboarding E2E on loopback — `gen config`
+     → maintenance token captured from the daemon log → `apply-config` → bundle
+     checks (version/status/services/logs) → config-rotation rejection of the old
+     bootstrap identity → `update --check`/`events` degradation. Green on this host.
+   - `hack/qemu-smoke.sh` (`just qemu-smoke`): boots a Microraptor DDI under QEMU
+     (KVM w/ TCG fallback, auto-detected EFI firmware, 9p seed mount, serial
+     console capture, apx port forwarded) and runs the same read-only + update
+     checks; gated on `MICRORAPTOR_IMAGE` (built in the Microraptor repo).
+   - `just cross` verified: static `linux/amd64` and `linux/arm64` binaries.
 8. **Docs + gates** — README, `just check` (fmt, vet, test, golangci-lint).
 
 ## Verification

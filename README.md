@@ -107,6 +107,23 @@ mode. `events` tails the journal, surfacing records from k0s, sysupdate/sysext,
 the apx daemon, and the kernel, plus anything at error priority. A `--context
 <name>` global flag selects a named bundle context when a bundle has several.
 
+## Packaging + smoke tests
+
+```sh
+just image-tree     # stage dist/rootfs: apx binaries + systemd unit + preset
+just smoke          # loopback E2E: gen config -> onboarding -> apply-config -> checks
+just cross          # static linux/amd64 + linux/arm64 binaries
+just qemu-smoke     # full VM smoke; needs MICRORAPTOR_IMAGE from the Microraptor repo
+```
+
+`packaging/microraptor/` holds the systemd unit and preset the Microraptor DDI
+pulls in: `apxd.service` (hardened, root, write paths limited to the apx state,
+sysext/k0s dirs, and `/efi`) and `zz-enable-apxd.preset`. `just image-tree`
+assembles `dist/rootfs/` in the target layout; `hack/smoke.sh` runs the full
+onboarding flow against a local daemon (including config-rotation rejection of
+the old bootstrap identity), and `hack/qemu-smoke.sh` drives the same checks
+against a real QEMU guest when a Microraptor image is available.
+
 ## License
 
 Apache-2.0.
